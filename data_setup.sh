@@ -10,7 +10,10 @@ mv SimpleQuestions_v2 freebase_data/
 rm SimpleQuestions_v2.tgz
 
 echo "Downloading the names file...\n"
-wget https://www.dropbox.com/s/yqbesl07hsw297w/FB5M.name.txt
+#wget https://www.dropbox.com/s/yqbesl07hsw297w/FB5M.name.txt
+wget https://git.uwaterloo.ca/jimmylin/BuboQA-data/raw/master/FB5M.name.txt.bz2
+bzip2 -d FB5M.name.txt.bz2
+
 mv FB5M.name.txt freebase_data/dump_virtuoso_data/
 
 # 2. create KB data

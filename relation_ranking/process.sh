@@ -11,6 +11,6 @@ python train.py \
 	--conv_kernel_2 3 \
 	--pool_kernel_1 21 \
 	--pool_kernel_2 1 \
-	--gpu 6 \
+	--gpu 0 \
 	--lr 0.0005 \
 	--rnn_type gru 

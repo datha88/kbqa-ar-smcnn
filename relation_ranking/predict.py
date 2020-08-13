@@ -63,7 +63,19 @@ def evaluate(dataset = args.test_file, tp = 'test'):
 
 def rel_pruned(neg_score, data):
     neg_rel = data.cand_rel
-    pred_rel_scores = sorted(zip(neg_rel, neg_score), key=lambda i:i[1], reverse=True)
+    if (len(neg_rel) == 1):
+        #print('ONE')
+        l1=[]
+        l2=[]
+        l1=neg_rel
+        l2=neg_score
+        #print([(l1[0], l2.tolist())])
+        pred_rel_scores = [(l1[0], l2.tolist())]
+    else:
+        #print('TWO')
+        #print(sorted(zip(neg_rel, neg_score), key = lambda i:i[1], reverse=True))
+        pred_rel_scores = sorted(zip(neg_rel, neg_score), key = lambda i:i[1], reverse=True)
+    #pred_rel_scores = sorted(zip(neg_rel, neg_score), key = lambda i:i[1], reverse=True)
     pred_rel = pred_rel_scores[0][0]
     pred_sub = []
     for i, rels in enumerate(data.sub_rels):

@@ -120,7 +120,7 @@ for epoch in range(1, args.epochs+1):
         if iterations % args.save_every == 0:
             snapshot_prefix = os.path.join(args.save_path, 'snapshot')
             snapshot_path = snapshot_prefix + \
-                        '_iter_{}_acc_{:.4f}_loss_{:.6f}_model.pt'.format(iterations, train_acc, loss.data[0])
+                        '_iter_{}_acc_{:.4f}_loss_{:.6f}_model.pt'.format(iterations, train_acc, loss.data.item())
             torch.save(model, snapshot_path)
             for f in glob.glob(snapshot_prefix + '*'):
                 if f != snapshot_path:
@@ -149,7 +149,7 @@ for epoch in range(1, args.epochs+1):
             print(dev_log_template.format(time.time() - start, epoch, iterations, 
                                           1 + batch_idx, train_loader.batch_num,
                                           100. * (1 + batch_idx) / train_loader.batch_num, 
-                                          loss.data[0], train_acc, dev_acc))
+                                          loss.data.item(), train_acc, dev_acc))
             print("{} Precision: {:10.6f}% Recall: {:10.6f}% F1 Score: {:10.6f}%".format("Dev", 100. * P, 100. * R, 100. * F))
             # update model
             if F > best_dev_F:
@@ -174,5 +174,5 @@ for epoch in range(1, args.epochs+1):
         elif iterations % args.log_every == 0:
             print(log_template.format(time.time()-start, epoch, iterations, 1+batch_idx, 
                                       train_loader.batch_num, 100. * (1+batch_idx)/train_loader.batch_num, 
-                                      loss.data[0], train_acc, ' '*12))
+                                      loss.data.item(), train_acc, ' '*12))
 

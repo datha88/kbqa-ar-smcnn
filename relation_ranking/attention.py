@@ -78,7 +78,8 @@ class WordSeqAttentionModel(nn.Module):
         :param seq: (batch_size, max_len, seq_size)
         :return: (batch_size * max_len, seq_size)
         """
-        return seq.view(seq.size(0) * seq.size(1), -1)
+        return seq.reshape(seq.size(0) * seq.size(1), -1)
+        #return seq.view(seq.size(0) * seq.size(1), -1)
 
 class MLPWordSeqAttention(WordSeqAttentionModel):
     def __init__(self, input_size, seq_size, hidden_size=None, activation="Tanh", bias=False):
