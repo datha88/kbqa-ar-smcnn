@@ -46,7 +46,7 @@ def evaluate(dataset = args.test_file, tp = 'test'):
     print('load %s data, batch_num: %d\tbatch_size: %d'
             %(tp, data_loader.batch_num, data_loader.batch_size))
 
-    model.eval();
+    model.eval()
     n_correct = 0
 
     for data_batch_idx, data_batch in enumerate(data_loader.next_batch(shuffle=False)):
@@ -84,7 +84,40 @@ def rel_pruned(neg_score, data):
     pred_sub = [sub[0] for sub in sorted(pred_sub, key = lambda sub:sub[1], reverse=True)]
     return pred_rel, pred_rel_scores, pred_sub
 
+def calc_f1(truth_sub,truth_rel, pred_sub, pred_rel):
+    """Return a tuple with recall, precision, and f1 for one example"""
 
+    if len(pred_sub) == 0:
+        return (0, 1, 0)
+    truth_sub_list = [truth_sub]
+    pred_sub_list = pred_sub
+    truth_rel_list = [truth_rel]
+    pred_rel_list = [pred_rel]
+    precision = 0
+    i = 0
+    while (i<len(pred_sub_list) and i<len(pred_rel_list)):
+        entity_rel =pred_rel_list[i]
+        entity_sub = pred_sub_list[i]
+        if (entity_rel in truth_rel_list) and (entity_sub in truth_sub_list):
+            precision += 1
+        i+=1
+    precision = float(precision) / len(pred_rel_list)
+    
+    recall = 0
+    i = 0
+    while (i<len(truth_rel_list) and i<len(truth_sub_list)):
+        entity_rel =truth_rel_list[i]
+        entity_sub = truth_sub_list[i]
+        if (entity_rel in pred_rel_list) and (entity_sub in pred_sub_list):
+            recall += 1
+        i+=1
+    recall = float(recall) / len(truth_rel_list)
+
+    f1 = 0
+    if precision + recall > 0:
+        f1 = 2 * recall * precision / (precision + recall)
+    return (recall, precision, f1)
+    
 def predict(qa_pattern_file, tp):
     # load batch data for predict
     data_loader = CandidateRankingLoader(qa_pattern_file, word_vocab, rel_vocab, args.gpu)
@@ -101,6 +134,12 @@ def predict(qa_pattern_file, tp):
     n_rel_correct = 0
     n_sub_recall = 0
     n_single_correct = 0
+    avg_recall = 0
+    avg_precision = 0
+    avg_f1 = 0
+    count = 0
+    if(tp =='test'):
+        out_f = open(os.path.join('./results/', 'error_analysis.txt'), 'w')
     for data_batch in data_loader.next_question():
         data = data_batch[-1]
         total += 1
@@ -124,7 +163,16 @@ def predict(qa_pattern_file, tp):
                     n_correct += 1
                     if len(pred_sub) == 1:
                         n_single_correct += 1
-
+        
+        
+        recall, precision, f1 =  calc_f1(data.subject, data.relation, pred_sub, pred_rel)
+        avg_recall += recall
+        avg_precision += precision
+        avg_f1 += f1
+        count += 1
+        if(tp =='test'):
+            out_f.write(" %%%% {}\t{}\t{}\t{}\t{}\t{}\n".format(count, data.subject, data.relation, pred_sub[0], pred_rel, f1))
+    
     if args.write_score:
         score_file = open(os.path.join(args.results_path, 'score-rel-%s.pkl' %tp), 'wb')
         pickle.dump(rel_scores, score_file)
@@ -139,9 +187,19 @@ def predict(qa_pattern_file, tp):
     print('single_acc: ', single_acc, n_single_correct, sub_correct)
     print("-" * 80)
 
+    avg_recall = float(avg_recall) / count
+    avg_precision = float(avg_precision) / count
+    avg_f1 = float(avg_f1) / count
+    print('Average recall',avg_recall)
+    print('Average precision',avg_precision)
+    print('Average f1',avg_f1)
+    if(tp =='test'):
+        out_f.close()
+    
 if args.predict:
     qa_pattern_file = '../entity_detection/results/QAData.label.%s.pkl'
     for tp in ('valid', 'test', 'train'):
+        print(tp)
         predict(qa_pattern_file % tp, tp)
 else:
     evaluate(args.valid_file, "valid")
